@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TaskFlow - Kanban Board">
+    <title>TaskFlow - Board</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="animated-bg"></div>
+
+    <div class="app-layout">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>⚡ TaskFlow</h1>
+                <p>Project Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Menu</div>
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <div class="nav-section-title">Project</div>
+                <div id="sidebarProjectInfo">
+                    <!-- Populated by JS -->
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-profile" id="userProfile">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div class="user-info">
+                        <div class="name" id="userName"></div>
+                        <div class="email" id="userEmail"></div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="logout()" style="width:100%;margin-top:8px">
+                    🚪 Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                    <div>
+                        <div class="breadcrumb">
+                            <a href="/dashboard.html">Projects</a>
+                            <span class="separator">›</span>
+                            <span id="projectNameBreadcrumb">Loading...</span>
+                        </div>
+                        <h2 id="projectTitle" style="margin-top:2px">Loading...</h2>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-secondary btn-sm" onclick="openAddMembersModal()">
+                        👥 Members
+                    </button>
+                    <div class="dropdown" style="position:relative">
+                        <button class="notification-btn" id="notifBtn" onclick="toggleNotifications()">
+                            🔔
+                            <span class="notification-badge hidden" id="notifBadge">0</span>
+                        </button>
+                        <div class="notification-panel" id="notifPanel">
+                            <div class="notification-panel-header">
+                                <h3>Notifications</h3>
+                                <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+                            </div>
+                            <div class="notification-list" id="notifList">
+                                <div class="no-notifications">No notifications yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Kanban Board -->
+            <div class="board-container" id="boardContainer">
+                <div class="loading-center" style="width:100%">
+                    <div class="spinner lg"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal-overlay" id="createTaskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Create Task</h2>
+                <button class="modal-close" onclick="closeModal('createTaskModal')">✕</button>
+            </div>
+            <form onsubmit="createTask(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="taskTitle">Title</label>
+                        <input type="text" class="form-input" id="taskTitle" placeholder="What needs to be done?"
+                            required>
+                    </div>
+                    <div class="form-group" style="margin-top:12px">
+                        <label for="taskDescription">Description</label>
+                        <textarea class="form-input" id="taskDescription" placeholder="Add more details..."
+                            rows="3"></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+                        <div class="form-group">
+                            <label for="taskPriority">Priority</label>
+                            <select class="form-input" id="taskPriority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskAssignee">Assignee</label>
+                            <select class="form-input" id="taskAssignee">
+                                <option value="">Unassigned</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:12px">
+                        <label for="taskDueDate">Due Date</label>
+                        <input type="date" class="form-input" id="taskDueDate">
+                    </div>
+                    <input type="hidden" id="taskColumn" value="To Do">
+                    <div class="error-message" id="createTaskError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('createTaskModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="taskDetailModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2 id="taskDetailTitle">Task Title</h2>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <button class="btn btn-danger btn-sm" id="deleteTaskBtn" onclick="deleteTask()">🗑️ Delete</button>
+                    <button class="modal-close" onclick="closeModal('taskDetailModal')">✕</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="task-detail-grid">
+                    <div class="task-detail-main">
+                        <!-- Description -->
+                        <div>
+                            <div class="detail-section-title">Description</div>
+                            <div class="form-group">
+                                <textarea class="form-input" id="detailDescription" placeholder="Add a description..."
+                                    rows="3" onchange="updateTaskField('description', this.value)"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Comments -->
+                        <div class="comments-section">
+                            <div class="detail-section-title">Comments</div>
+                            <div class="comments-list" id="commentsList">
+                                <!-- Populated by JS -->
+                            </div>
+                            <div class="comment-input-group">
+                                <input type="text" class="form-input" id="commentInput" placeholder="Write a comment..."
+                                    onkeydown="if(event.key==='Enter')addComment()">
+                                <button class="btn btn-primary btn-sm" onclick="addComment()">Send</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="task-detail-sidebar">
+                        <!-- Status / Column -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">Status</div>
+                            <select class="form-input" id="detailColumn"
+                                onchange="updateTaskField('column', this.value)" style="font-size:0.85rem">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+
+                        <!-- Assignee -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">Assignee</div>
+                            <select class="form-input" id="detailAssignee"
+                                onchange="updateTaskField('assignee', this.value)" style="font-size:0.85rem">
+                                <option value="">Unassigned</option>
+                            </select>
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">Priority</div>
+                            <select class="form-input" id="detailPriority"
+                                onchange="updateTaskField('priority', this.value)" style="font-size:0.85rem">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+
+                        <!-- Due Date -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">Due Date</div>
+                            <input type="date" class="form-input" id="detailDueDate"
+                                onchange="updateTaskField('dueDate', this.value)" style="font-size:0.85rem">
+                        </div>
+
+                        <!-- Created By -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">Created By</div>
+                            <div class="detail-value" id="detailCreatedBy">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Members Modal -->
+    <div class="modal-overlay" id="addMembersModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Project Members</h2>
+                <button class="modal-close" onclick="closeModal('addMembersModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="members-list" id="membersList">
+                    <!-- Populated by JS -->
+                </div>
+                <div style="margin-top:16px">
+                    <label class="form-group">
+                        <span style="font-size:0.85rem;font-weight:500;color:var(--text-secondary)">Add Member by
+                            Email</span>
+                    </label>
+                    <div class="comment-input-group" style="margin-top:6px">
+                        <input type="email" class="form-input" id="memberEmail" placeholder="teammate@example.com">
+                        <button class="btn btn-primary btn-sm" onclick="addMemberToProject()">Add</button>
+                    </div>
+                    <div class="error-message" id="addMemberError"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/socket.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script src="/js/board.js"></script>
+</body>
+
+</html>
