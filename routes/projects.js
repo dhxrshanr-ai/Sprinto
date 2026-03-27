@@ -5,6 +5,8 @@ const Project = require('../models/Project');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const cacheData = require('../middleware/cache');
+const { clearCachePrefix } = require('../config/redis');
 
 // @route   POST /api/projects
 // @desc    Create a new project
@@ -34,6 +36,9 @@ router.post('/', auth, async (req, res) => {
             io.to(`user:${req.user._id}`).emit('project:created', populated);
         }
 
+        // Clear cache
+        await clearCachePrefix(`projects:${req.user._id}`);
+
         res.status(201).json(populated);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -42,7 +47,7 @@ router.post('/', auth, async (req, res) => {
 
 // @route   GET /api/projects
 // @desc    Get all projects for current user
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, cacheData('projects', 300), async (req, res) => {
     try {
         const projects = await Project.find({ members: req.user._id })
             .populate('owner', 'name email avatar')
@@ -65,7 +70,7 @@ router.get('/', auth, async (req, res) => {
 
 // @route   GET /api/projects/:id
 // @desc    Get project by ID
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, cacheData('projects', 300), async (req, res) => {
     try {
         const project = await Project.findById(req.params.id)
             .populate('owner', 'name email avatar')
@@ -115,6 +120,11 @@ router.put('/:id', auth, async (req, res) => {
         if (io) {
             io.to(`project:${project._id}`).emit('project:updated', updated);
         }
+
+        // Clear cache for all members potentially
+        project.members.forEach(async (m) => {
+            await clearCachePrefix(`projects:${m.toString()}`);
+        });
 
         res.json(updated);
     } catch (error) {
@@ -170,6 +180,10 @@ router.post('/:id/members', auth, async (req, res) => {
             });
         }
 
+        project.members.forEach(async (m) => {
+            await clearCachePrefix(`projects:${m.toString()}`);
+        });
+
         res.json(updated);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -203,6 +217,10 @@ router.delete('/:id', auth, async (req, res) => {
         if (io) {
             io.to(`project:${project._id}`).emit('project:deleted', { projectId: project._id });
         }
+
+        project.members.forEach(async (m) => {
+            await clearCachePrefix(`projects:${m.toString()}`);
+        });
 
         res.json({ message: 'Project deleted successfully' });
     } catch (error) {

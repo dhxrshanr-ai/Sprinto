@@ -1,0 +1,18 @@
+
+── TaskFlow API Tests ──────────────────────
+
+  ❌ GET /api/health returns 200: 
+  ❌ POST /api/auth/register creates account: 
+  ❌ POST /api/auth/register rejects duplicate: 
+  ❌ POST /api/auth/login returns token: 
+  ❌ POST /api/auth/login rejects bad credentials: 
+  ❌ GET /api/auth/me returns profile (authenticated): 
+  ❌ GET /api/auth/me returns 401 without token: 
+  ❌ POST /api/projects creates project: 
+  ❌ GET /api/projects returns list: 
+  ❌ POST /api/tasks creates task: 
+  ❌ GET /api/tasks?project= returns tasks: 
+  ❌ DELETE /api/projects/:id deletes project: 
+
+── Results: 0 passed, 12 failed ──
+

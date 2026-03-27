@@ -1,0 +1,104 @@
+version: '3.9'
+
+services:
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: Sprinto-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: Sprinto
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - Sprinto-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Node/Express) ───────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Sprinto-backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=mongodb://root:rootpassword@mongo:27017/Sprinto?authSource=admin
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-changeme_in_production_min32chars}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost}
+    ports:
+      - "5000:5000"
+    networks:
+      - Sprinto-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── Frontend (React → nginx) ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: Sprinto-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - Sprinto-net
+
+  # ── Redis (Caching) ────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: Sprinto-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - Sprinto-net
+
+  # ── Optional: Mongo-Express UI ───────────────────────────────────────────────
+  mongo-express:
+    image: mongo-express:1
+    container_name: Sprinto-mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
+      ME_CONFIG_MONGODB_URL: mongodb://root:rootpassword@mongo:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    networks:
+      - Sprinto-net
+    profiles:
+      - debug
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  Sprinto-net:
+    driver: bridge

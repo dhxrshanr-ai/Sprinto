@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <defs>
+    <linearGradient id="gradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Logo Icon Background -->
+  <rect x="0" y="4" width="32" height="32" rx="8" fill="url(#gradIcon)" />
+  
+  <!-- Logo Icon Path -->
+  <path transform="translate(4,4) scale(1)" d="M16 5H8L4 12h8l-4 7h8l4-7h-8z" fill="white" stroke="white" stroke-width="1.5" stroke-linejoin="round" />
+  
+  <!-- Text: Sprinto -->
+  <text x="44" y="27" font-family="Inter, Poppins, sans-serif" font-weight="bold" font-size="24" fill="#EDEDED" letter-spacing="-0.5">Sprinto</text>
+</svg>

@@ -1,53 +1,91 @@
 require('dotenv').config();
 const express = require('express');
-const http = require('http');
-const cors = require('cors');
+const http    = require('http');
+const cors    = require('cors');
+const morgan  = require('morgan');
 const { Server } = require('socket.io');
-const connectDB = require('./config/db');
-const setupSocket = require('./socket/index');
+const connectDB    = require('./config/db');
+const { connectRedis } = require('./config/redis');
+const setupSocket  = require('./socket/index');
+const logger       = require('./config/logger');
+const compression  = require('compression');
 
-// Connect to database
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
 connectDB();
+connectRedis();
 
-const app = express();
+const app    = express();
 const server = http.createServer(app);
 
-// Socket.IO
+// ── Socket.IO ─────────────────────────────────────────────────────────────────
 const io = new Server(server, {
     cors: {
-        origin: '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE']
+        origin: process.env.CLIENT_URL || '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        credentials: true,
     }
 });
-
-// Make io accessible to routes
 app.set('io', io);
-
-// Setup socket events
 setupSocket(io);
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ── Middleware ────────────────────────────────────────────────────────────────
+const allowedOrigins = (process.env.CLIENT_URL || '*').split(',');
+app.use(cors({
+    origin: allowedOrigins.includes('*') ? '*' : (origin, cb) => {
+        if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+        else cb(new Error('CORS policy violation'));
+    },
+    credentials: true,
+}));
 
-// Serve static files
+// Use compression for better performance
+app.use(compression());
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// HTTP request logging (Morgan → Winston)
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms', {
+    stream: { write: (msg) => logger.http(msg.trim()) }
+}));
+
+// Serve static files (public folder)
 app.use(express.static('public'));
 
-// API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/tasks', require('./routes/tasks'));
-app.use('/api/comments', require('./routes/comments'));
+// ── Routes ────────────────────────────────────────────────────────────────────
+app.use('/api/auth',          require('./routes/auth'));
+app.use('/api/projects',      require('./routes/projects'));
+app.use('/api/tasks',         require('./routes/tasks'));
+app.use('/api/comments',      require('./routes/comments'));
 app.use('/api/notifications', require('./routes/notifications'));
 
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check endpoint
+app.get('/api/health', (_req, res) => {
+    res.json({
+        status: 'ok',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || 'development',
+    });
 });
 
+// ── 404 Handler ───────────────────────────────────────────────────────────────
+app.use((_req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
+
+// ── Global Error Handler ──────────────────────────────────────────────────────
+app.use((err, _req, res, _next) => {
+    logger.error(err.message, { stack: err.stack });
+    res.status(err.status || 500).json({
+        message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    });
+});
+
+// ── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Open http://localhost:${PORT} in your browser`);
+    logger.info(`Sprinto backend running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
 });
+
+module.exports = { app, server }; // export for testing

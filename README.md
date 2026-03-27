@@ -1,138 +1,283 @@
-# 🚀 Project Management Tool
+# Sprinto — Fullstack Kanban Task Manager
 
-A **collaborative project management tool** with Kanban boards, real-time updates, and team collaboration features. Built with a modern emerald-green dark theme.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react" />
+  <img src="https://img.shields.io/badge/Node.js-20-339933?style=for-the-badge&logo=node.js" />
+  <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker" />
+  <img src="https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions" />
+</p>
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![Socket.IO](https://img.shields.io/badge/Socket.IO-010101?style=for-the-badge&logo=socketdotio&logoColor=white)
-
----
-
-## ✨ Features
-
-- **🔐 Authentication** — Register & login with JWT-based auth
-- **📋 Project Boards** — Create and manage multiple projects
-- **📝 Kanban Board** — Drag-and-drop task cards across columns (To Do, In Progress, Done)
-- **👥 Team Collaboration** — Invite members and assign tasks
-- **💬 Comments** — Discuss tasks with threaded comments
-- **🔔 Notifications** — Real-time notifications for task updates
-- **⚡ Real-Time Updates** — Live sync via Socket.IO
-- **🎨 Modern UI** — Glassmorphism dark theme with emerald-green accents
+> A production-ready, industry-level fullstack Kanban task management application with real-time collaboration, JWT authentication, drag-and-drop boards, and a complete DevOps pipeline.
 
 ---
 
-## 🛠️ Tech Stack
-
-| Layer      | Technology                        |
-|------------|-----------------------------------|
-| Frontend   | HTML, CSS, JavaScript             |
-| Backend    | Node.js, Express.js               |
-| Database   | MongoDB with Mongoose             |
-| Auth       | JWT + bcrypt                      |
-| Real-Time  | Socket.IO                        |
-
----
-
-## 📁 Project Structure
+## 📐 Project Structure
 
 ```
-Project Management Tool/
-├── config/
-│   └── db.js                # MongoDB connection config
-├── middleware/
-│   └── auth.js              # JWT authentication middleware
-├── models/
-│   ├── User.js              # User schema
-│   ├── Project.js           # Project schema
-│   ├── Task.js              # Task schema
-│   ├── Comment.js           # Comment schema
-│   └── Notification.js      # Notification schema
-├── routes/
-│   ├── auth.js              # Auth routes (register/login)
-│   ├── projects.js          # Project CRUD routes
-│   ├── tasks.js             # Task CRUD routes
-│   ├── comments.js          # Comment routes
-│   └── notifications.js     # Notification routes
-├── socket/
-│   └── index.js             # Socket.IO event handlers
-├── public/
-│   ├── index.html           # Login/Register page
-│   ├── dashboard.html       # Projects dashboard
-│   ├── board.html           # Kanban board view
-│   ├── css/
-│   │   └── style.css        # Design system & styles
-│   └── js/                  # Client-side JavaScript
-├── server.js                # Express server entry point
-├── .env                     # Environment variables
-├── .gitignore
-└── package.json
+Root/
+├── client/                  # React + Vite + Tailwind CSS frontend
+│   ├── src/
+│   │   ├── api/             # Axios instance
+│   │   ├── components/      # Navbar, TaskCard, TaskModal
+│   │   ├── context/         # AuthContext
+│   │   └── pages/           # Login, Register, Dashboard, Board
+│   ├── Dockerfile           # Multi-stage nginx production build
+│   └── nginx.conf           # SPA routing + API proxy
+├── config/                  # DB connection, Winston logger
+├── middleware/              # JWT auth middleware
+├── models/                  # Mongoose schemas (User, Task, Project, etc.)
+├── routes/                  # Express RESTful API routes
+├── socket/                  # Socket.IO real-time events
+├── tests/                   # API integration tests
+├── .github/workflows/       # GitHub Actions CI/CD
+├── docker-compose.yml       # Full-stack orchestration
+├── Dockerfile               # Backend production image
+├── .env.example             # Environment variable template
+└── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Tech Stack
+
+| Layer        | Technology                           |
+|-------------|--------------------------------------|
+| Frontend    | React 18, Vite, Tailwind CSS v4      |
+| Backend     | Node.js 20, Express 5                |
+| Database    | MongoDB Atlas, Mongoose ODM          |
+| Auth        | JWT (JSON Web Tokens), bcryptjs      |
+| Real-time   | Socket.IO                            |
+| Drag & Drop | @hello-pangea/dnd                    |
+| Logging     | Winston + Morgan                     |
+| DevOps      | Docker, Docker Compose, GitHub Actions |
+| Deployment  | Vercel (frontend) + Render (backend) |
+
+---
+
+## ⚡ Features
+
+- **🔐 JWT Authentication** — Secure login/register with token stored in localStorage
+- **📋 Kanban Boards** — Drag & drop tasks between To Do / In Progress / Done columns
+- **✅ Full Task CRUD** — Create, edit, delete tasks with title, description, priority, due date, labels, assignee
+- **👥 Team Collaboration** — Invite members to projects by email
+- **🔔 Real-time Notifications** — Socket.IO push notifications for task assignments and project invites
+- **📊 Dashboard** — Project stats, member avatars, last-updated timestamps
+- **📱 Responsive** — Fully mobile-friendly layout
+- **🎨 Premium UI** — Dark glassmorphism design with smooth animations
+
+---
+
+## 🛠️ Local Development Setup
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [MongoDB](https://www.mongodb.com/try/download/community) (local) or [MongoDB Atlas](https://www.mongodb.com/atlas) (cloud)
+- Node.js >= 18
+- MongoDB (local or Atlas URI)
+- npm >= 9
 
-### Installation
+### 1. Clone & Install
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/Project-Management-Tool.git
-   cd Project-Management-Tool
-   ```
+```bash
+git clone <your-repo-url>
+cd "Project Management Tool"
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Backend dependencies
+npm install
 
-3. **Set up environment variables**
+# Frontend dependencies
+cd client && npm install && cd ..
+```
 
-   Create a `.env` file in the root directory:
-   ```env
-   MONGO_URI=mongodb://localhost:27017/project-manager
-   JWT_SECRET=your_secret_key_here
-   PORT=5000
-   ```
+### 2. Configure Environment
 
-   > For MongoDB Atlas, replace `MONGO_URI` with your Atlas connection string.
+```bash
+cp .env.example .env
+# Edit .env with your MONGO_URI and JWT_SECRET
+```
 
-4. **Start MongoDB** (if running locally)
-   ```bash
-   mongod
-   ```
+### 3. Start Backend
 
-5. **Start the server**
-   ```bash
-   npm start
-   ```
+```bash
+npm run dev       # Starts Express on http://localhost:5000
+```
 
-6. **Open your browser** at [http://localhost:5000](http://localhost:5000)
+### 4. Start Frontend
+
+```bash
+cd client
+npm run dev       # Starts Vite dev server on http://localhost:3000
+```
+
+The Vite dev server proxies `/api` requests to the backend automatically.
 
 ---
 
-## 📡 API Endpoints
+## 🐳 Docker Setup
 
-| Method | Endpoint                | Description              |
-|--------|-------------------------|--------------------------|
-| POST   | `/api/auth/register`    | Register a new user      |
-| POST   | `/api/auth/login`       | Login & get JWT token    |
-| GET    | `/api/projects`         | Get all user projects    |
-| POST   | `/api/projects`         | Create a new project     |
-| GET    | `/api/tasks/:projectId` | Get tasks for a project  |
-| POST   | `/api/tasks`            | Create a new task        |
-| PUT    | `/api/tasks/:id`        | Update a task            |
-| DELETE | `/api/tasks/:id`        | Delete a task            |
-| POST   | `/api/comments`         | Add a comment to a task  |
-| GET    | `/api/notifications`    | Get user notifications   |
+Run the **entire stack** (MongoDB + Backend + Frontend) with a single command:
+
+```bash
+# Copy and edit environment variables
+cp .env.example .env
+
+# Start all services
+docker-compose up --build
+
+# Access the app at http://localhost
+# Backend API at http://localhost:5000
+```
+
+### Optional: With Mongo Express UI
+
+```bash
+docker-compose --profile debug up --build
+# Mongo Express at http://localhost:8081
+```
+
+### Stop services
+
+```bash
+docker-compose down
+docker-compose down -v  # Also remove MongoDB data volume
+```
+
+---
+
+## 🔌 API Reference
+
+### Auth
+
+| Method | Endpoint              | Description       | Auth |
+|--------|-----------------------|-------------------|------|
+| POST   | `/api/auth/register`  | Register new user | ❌   |
+| POST   | `/api/auth/login`     | Login             | ❌   |
+| GET    | `/api/auth/me`        | Get current user  | ✅   |
+
+### Projects
+
+| Method | Endpoint                       | Description             |
+|--------|--------------------------------|-------------------------|
+| GET    | `/api/projects`                | List my projects        |
+| POST   | `/api/projects`                | Create project          |
+| GET    | `/api/projects/:id`            | Get project             |
+| PUT    | `/api/projects/:id`            | Update project (owner)  |
+| DELETE | `/api/projects/:id`            | Delete project (owner)  |
+| POST   | `/api/projects/:id/members`    | Add member by email     |
+
+### Tasks
+
+| Method | Endpoint              | Description                   |
+|--------|-----------------------|-------------------------------|
+| GET    | `/api/tasks?project=` | Get tasks for project         |
+| POST   | `/api/tasks`          | Create task                   |
+| PUT    | `/api/tasks/:id`      | Update task                   |
+| PUT    | `/api/tasks/:id/move` | Move task (drag & drop)       |
+| DELETE | `/api/tasks/:id`      | Delete task                   |
+
+### Other
+
+- `GET /api/health` — Server health check
+- `GET /api/notifications` — Get user notifications
+- `GET /api/comments?task=` — Get task comments
+- `POST /api/comments` — Add comment to task
+
+---
+
+## 🚢 Deployment
+
+### Frontend → Vercel
+
+1. Create a Vercel project linked to your GitHub repo
+2. Set **Root Directory** to `client`
+3. Add environment variable: `VITE_API_URL=https://your-backend.render.com/api`
+4. Add GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+
+### Backend → Render
+
+1. Create a Render **Web Service** from your repo
+2. Set **Root Directory** to `/` (repo root)
+3. Build command: `npm install`
+4. Start command: `node server.js`
+5. Add env vars: `MONGO_URI`, `JWT_SECRET`, `CLIENT_URL`, `NODE_ENV=production`
+6. Copy the **Deploy Hook URL** and add to GitHub secrets as `RENDER_DEPLOY_HOOK_URL`
+
+### Database → MongoDB Atlas
+
+1. Create a free M0 cluster at [mongodb.com/cloud/atlas](https://mongodb.com/cloud/atlas)
+2. Create a database user
+3. Whitelist `0.0.0.0/0` for Render
+4. Copy the connection string to `MONGO_URI`
+
+---
+
+## ⚙️ CI/CD Pipeline
+
+GitHub Actions workflow at `.github/workflows/ci-cd.yml`:
+
+```
+Push to main
+    │
+    ├── backend-ci       → Install deps → Run tests → Health check
+    ├── frontend-ci      → Install deps → Lint → Build → Upload artifact
+    │
+    └── (on main only)
+        ├── docker-build → Build & push GHCR images (backend + frontend)
+        ├── deploy-frontend → Deploy to Vercel
+        └── deploy-backend  → Trigger Render deploy hook
+```
+
+### Required GitHub Secrets
+
+| Secret                    | Description                      |
+|--------------------------|----------------------------------|
+| `VERCEL_TOKEN`           | Vercel personal access token     |
+| `VERCEL_ORG_ID`          | Vercel organization/user ID      |
+| `VERCEL_PROJECT_ID`      | Vercel project ID                |
+| `RENDER_DEPLOY_HOOK_URL` | Render deploy hook URL           |
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Start the server first (with a test DB)
+MONGO_URI=mongodb://localhost:27017/Sprinto_test npm run dev &
+
+# Run API integration tests
+npm test
+```
+
+---
+
+## 📸 Screenshots
+
+| Login Page | Dashboard | Kanban Board |
+|:----------:|:---------:|:------------:|
+| _screenshot_ | _screenshot_ | _screenshot_ |
+
+---
+
+## 📋 Environment Variables Reference
+
+```bash
+# Backend (.env)
+MONGO_URI=mongodb+srv://...            # MongoDB Atlas URI
+JWT_SECRET=long_random_secret          # Min 32 chars
+PORT=5000                              # Server port
+NODE_ENV=development                   # development | production | test
+CLIENT_URL=http://localhost:3000       # Frontend origin for CORS
+
+# Frontend (client/.env.local) — optional
+VITE_API_URL=/api                      # API base URL
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the ISC License.
+MIT © Sprinto
+
+---
+
+<p align="center">Built with ❤️ as an industry-level portfolio project demonstrating fullstack development and DevOps best practices.</p>

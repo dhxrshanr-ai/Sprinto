@@ -4,6 +4,8 @@ const auth = require('../middleware/auth');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
 const Notification = require('../models/Notification');
+const cacheData = require('../middleware/cache');
+const { clearCachePrefix } = require('../config/redis');
 
 // @route   POST /api/tasks
 // @desc    Create a new task
@@ -67,6 +69,8 @@ router.post('/', auth, async (req, res) => {
             io.to(`project:${project}`).emit('task:created', populated);
         }
 
+        await clearCachePrefix(`tasks:*`);
+
         res.status(201).json(populated);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -75,7 +79,7 @@ router.post('/', auth, async (req, res) => {
 
 // @route   GET /api/tasks?project=:projectId
 // @desc    Get tasks for a project
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, cacheData('tasks', 300), async (req, res) => {
     try {
         const { project } = req.query;
         if (!project) {
@@ -95,7 +99,7 @@ router.get('/', auth, async (req, res) => {
 
 // @route   GET /api/tasks/:id
 // @desc    Get a single task
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', auth, cacheData('tasks', 300), async (req, res) => {
     try {
         const task = await Task.findById(req.params.id)
             .populate('assignee', 'name email avatar')
@@ -165,6 +169,8 @@ router.put('/:id', auth, async (req, res) => {
             io.to(`project:${task.project}`).emit('task:updated', populated);
         }
 
+        await clearCachePrefix(`tasks:*`);
+
         res.json(populated);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -196,6 +202,8 @@ router.put('/:id/move', auth, async (req, res) => {
             io.to(`project:${task.project}`).emit('task:moved', populated);
         }
 
+        await clearCachePrefix(`tasks:*`);
+
         res.json(populated);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -220,6 +228,8 @@ router.delete('/:id', auth, async (req, res) => {
         if (io) {
             io.to(`project:${task.project}`).emit('task:deleted', { taskId: task._id, project: task.project });
         }
+
+        await clearCachePrefix(`tasks:*`);
 
         res.json({ message: 'Task deleted successfully' });
     } catch (error) {
