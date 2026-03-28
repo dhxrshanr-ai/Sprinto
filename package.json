@@ -8,7 +8,7 @@
     "server": "nodemon server.js",
     "client": "cd client && npm run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build": "cd client && npm install && npm run build && cd .. && rm -rf public/* && cp -rv client/dist/* public/",
+    "build": "cd client && npm install && npm run build && cd .. && node build-dist.js",
     "test": "node --require dotenv/config tests/api.test.js"
   },
   "keywords": [
