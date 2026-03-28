@@ -24,7 +24,12 @@ const projectSchema = new mongoose.Schema({
     columns: [{
         name: { type: String, required: true },
         order: { type: Number, required: true }
-    }]
+    }],
+    status: {
+        type: String,
+        enum: ['active', 'completed', 'deleted'],
+        default: 'active'
+    }
 }, {
     timestamps: true
 });

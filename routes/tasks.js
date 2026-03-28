@@ -81,7 +81,8 @@ router.post('/', auth, async (req, res) => {
 // @desc    Get all tasks assigned to the current user
 router.get('/me', auth, async (req, res) => {
     try {
-        const tasks = await Task.find({ assignee: req.user._id })
+        const { status = 'active' } = req.query;
+        const tasks = await Task.find({ assignee: req.user._id, status })
             .populate('assignee', 'name email avatar')
             .populate('createdBy', 'name email avatar')
             .populate('project', 'name')
@@ -97,12 +98,12 @@ router.get('/me', auth, async (req, res) => {
 // @desc    Get tasks for a project
 router.get('/', auth, cacheData('tasks', 300), async (req, res) => {
     try {
-        const { project } = req.query;
+        const { project, status = 'active' } = req.query;
         if (!project) {
             return res.status(400).json({ message: 'Project ID is required' });
         }
 
-        const tasks = await Task.find({ project })
+        const tasks = await Task.find({ project, status })
             .populate('assignee', 'name email avatar')
             .populate('createdBy', 'name email avatar')
             .sort({ order: 1 });
@@ -235,11 +236,13 @@ router.delete('/:id', auth, async (req, res) => {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        const Comment = require('../models/Comment');
-        await Comment.deleteMany({ task: task._id });
-        await Task.findByIdAndDelete(task._id);
+        if (task.assignee?.toString() !== req.user._id.toString() && task.createdBy.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
 
-        // Emit socket event
+        task.status = 'deleted';
+        await task.save();
+
         const io = req.app.get('io');
         if (io) {
             io.to(`project:${task.project}`).emit('task:deleted', { taskId: task._id, project: task.project });
@@ -247,7 +250,51 @@ router.delete('/:id', auth, async (req, res) => {
 
         await clearCachePrefix(`tasks:*`);
 
-        res.json({ message: 'Task deleted successfully' });
+        res.json({ message: 'Task moved to trash', task });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   POST /api/tasks/:id/restore
+// @desc    Restore a task from trash
+router.post('/:id/restore', auth, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) return res.status(404).json({ message: 'Task not found' });
+
+        task.status = 'active';
+        await task.save();
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(`project:${task.project}`).emit('task:created', task);
+        }
+
+        await clearCachePrefix(`tasks:*`);
+
+        res.json({ message: 'Task restored', task });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   DELETE /api/tasks/:id/permanent
+// @desc    Delete a task PERMANENTLY
+router.delete('/:id/permanent', auth, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        const Comment = require('../models/Comment');
+        await Comment.deleteMany({ task: task._id });
+        await Task.findByIdAndDelete(task._id);
+
+        await clearCachePrefix(`tasks:*`);
+
+        res.json({ message: 'Task permanently deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

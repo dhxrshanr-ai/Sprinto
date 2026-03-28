@@ -16,31 +16,36 @@ export default function Header({ onMenuClick }) {
         </button>
 
         {/* Global Search */}
-        <div className={`relative flex-1 group transition-all duration-300 ${searchFocused ? 'md:max-w-md' : 'md:max-w-xs'}`}>
+        <div className={`relative flex-1 group transition-all duration-500 ease-out h-9 ${searchFocused ? 'max-w-[400px]' : 'max-w-[200px]'}`}>
+          <div className={`absolute inset-0 rounded-xl transition-all duration-300 ${searchFocused ? 'bg-[var(--bg-elevated)] ring-2 ring-[var(--accent)]/20 shadow-lg' : 'bg-[var(--bg-elevated)]'}`} />
+          
           <Search 
             size={14} 
-            className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition-colors ${searchFocused ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`} 
+            className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors z-10 ${searchFocused ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`} 
           />
+          
           <input
             type="text"
-            placeholder="Search projects, tasks..."
+            placeholder="Search tasks, projects..."
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
-            className="w-full bg-[var(--bg-elevated)] border border-[var(--bg-elevated)] group-hover:border-[var(--border-strong)] focus:border-[var(--accent)] text-[var(--text-main)] pl-8 pr-3 py-1.5 rounded-md text-sm transition-all outline-none placeholder:text-[var(--text-muted)] shadow-sm"
+            className="relative w-full h-full bg-transparent text-[var(--text-main)] pl-10 pr-12 rounded-xl text-[13px] font-medium transition-all outline-none placeholder:text-[var(--text-muted)]/60 z-10"
           />
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:flex gap-1">
-            <kbd className="hidden lg:inline-block text-[10px] font-mono bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-muted)] px-1.5 py-0.5 rounded shadow-sm">⌘</kbd>
-            <kbd className="hidden lg:inline-block text-[10px] font-mono bg-[var(--bg-base)] border border-[var(--border-subtle)] text-[var(--text-muted)] px-1.5 py-0.5 rounded shadow-sm">K</kbd>
+
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10 opacity-40 group-focus-within:opacity-100 transition-opacity">
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded-[4px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 font-sans text-9px font-bold text-[var(--text-muted)]">
+              <span className="text-[10px]">⌘</span>K
+            </kbd>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <ThemeToggle />
         
-        <button className="relative p-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-md hover:bg-[var(--bg-elevated)] transition-colors group">
-          <Bell size={18} className="group-hover:scale-105 transition-transform" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[var(--accent)] rounded-full border-2 border-[var(--bg-surface)]"></span>
+        <button className="relative p-2 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-xl hover:bg-[var(--bg-elevated)] transition-all group border border-transparent hover:border-[var(--border-subtle)] shadow-sm">
+          <Bell size={18} className="group-hover:rotate-[15deg] transition-transform" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-[var(--accent)] rounded-full border-2 border-[var(--bg-surface)] shadow-none"></span>
         </button>
       </div>
     </header>

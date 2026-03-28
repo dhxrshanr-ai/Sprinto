@@ -29,18 +29,18 @@ export default function TaskCard({ task, onEdit, currentUser }) {
       style={{ borderLeft: `3px solid ${pm.color}` }}
     >
       {/* Title */}
-      <h4 className="text-[14px] font-semibold text-[var(--text-main)] leading-tight">{task.title}</h4>
+      <h4 className="text-[13px] sm:text-[14px] font-semibold text-[var(--text-main)] leading-tight">{task.title}</h4>
 
       {/* Description preview */}
       {task.description && (
-        <p className="text-[13px] text-[var(--text-muted)] line-clamp-2 leading-relaxed">{task.description}</p>
+        <p className="text-[11px] sm:text-[13px] text-[var(--text-muted)] line-clamp-2 leading-relaxed">{task.description}</p>
       )}
 
       {/* Labels */}
       {task.labels?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-1">
           {task.labels.slice(0,3).map(lbl => (
-            <span key={lbl} className="text-[11px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-main)] px-2 py-0.5 rounded-md flex items-center gap-1 font-medium shadow-sm">
+            <span key={lbl} className="text-[10px] sm:text-[11px] bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-main)] px-1.5 py-0.5 rounded-md flex items-center gap-1 font-medium shadow-sm">
               {lbl}
             </span>
           ))}
@@ -48,7 +48,7 @@ export default function TaskCard({ task, onEdit, currentUser }) {
       )}
 
       {/* Bottom row */}
-      <div className="flex items-center justify-between mt-2 pt-3 border-t border-[var(--border-subtle)] text-[12px]">
+      <div className="flex items-center justify-between mt-1 pt-2 sm:mt-2 sm:pt-3 border-t border-[var(--border-subtle)] text-[10px] sm:text-[12px]">
         {/* Priority & Date */}
         <div className="flex items-center gap-2">
           {dueDate && (

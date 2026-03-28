@@ -12,6 +12,7 @@ import Board from './pages/Board';
 import Boards from './pages/Boards';
 import Tasks from './pages/Tasks';
 import Settings from './pages/Settings';
+import Archive from './pages/Archive';
 
 // Protected Route Wrapper
 const PrivateRoute = ({ children }) => {
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="/boards" element={<Boards />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/archive" element={<Archive />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" />} />

@@ -7,14 +7,17 @@ export default function Logo({ iconOnly = false, className = "" }) {
       whileHover={{ scale: 1.03 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      <div className="relative flex shadow-sm items-center justify-center min-w-8 w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b5cf6] to-[#3b82f6]">
-        <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] text-white" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
-          {/* Abstract Geometric 'S' / Flow */}
-          <path d="M16 5H8L4 12h8l-4 7h8l4-7h-8z" />
-        </svg>
+      <div className="relative flex shadow-xl items-center justify-center min-w-10 w-10 h-10 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-strong)] overflow-hidden">
+        {/* Using standard public path for reliability */}
+        <img 
+          src="/favicon.svg" 
+          alt="Sprinto Logo" 
+          className="w-[22px] h-[22px] drop-shadow-sm select-none"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-white/20" />
       </div>
       {!iconOnly && (
-        <span className="text-[20px] font-bold tracking-tight text-[var(--text-main)]" style={{ fontFamily: 'Inter, Poppins, sans-serif' }}>
+        <span className="text-[22px] font-bold tracking-tight text-[var(--text-main)]" style={{ fontFamily: 'Outfit, Inter, sans-serif' }}>
           Sprinto
         </span>
       )}

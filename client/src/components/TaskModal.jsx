@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import Modal from './ui/Modal';
@@ -7,6 +8,7 @@ import Button from './ui/Button';
 
 export default function TaskModal({ projectId, task, defaultColumn, members, currentUser, onClose, onSaved }) {
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isEditing = !!task;
 
   const [form, setForm] = useState({
@@ -99,7 +101,7 @@ export default function TaskModal({ projectId, task, defaultColumn, members, cur
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4 sm:gap-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-medium text-[var(--text-main)] tracking-wide mb-0.5">Priority</label>
             <select
@@ -158,9 +160,40 @@ export default function TaskModal({ projectId, task, defaultColumn, members, cur
 
         <div className="flex items-center justify-between pt-4 mt-2 border-t border-[var(--border-subtle)]">
           {isEditing ? (
-            <Button variant="danger" size="sm" type="button" onClick={handleDelete}>
-              Delete
-            </Button>
+            <div className="flex items-center gap-2">
+              {!confirmDelete ? (
+                <Button 
+                  variant="danger" 
+                  size="sm" 
+                  type="button" 
+                  onClick={() => setConfirmDelete(true)}
+                  icon={Trash2}
+                >
+                  Delete
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 bg-red-500/10 p-1 rounded-lg border border-red-500/20 animate-in fade-in slide-in-from-right-2">
+                   <Button 
+                    variant="danger" 
+                    size="sm" 
+                    type="button" 
+                    onClick={handleDelete}
+                    className="h-8 px-3"
+                  >
+                    Confirm Delete
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    type="button" 
+                    onClick={() => setConfirmDelete(false)}
+                    className="h-8 px-3"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
           ) : <div />}
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={onClose} type="button">Cancel</Button>

@@ -49,7 +49,8 @@ router.post('/', auth, async (req, res) => {
 // @desc    Get all projects for current user
 router.get('/', auth, cacheData('projects', 300), async (req, res) => {
     try {
-        const projects = await Project.find({ members: req.user._id })
+        const { status = 'active' } = req.query;
+        const projects = await Project.find({ members: req.user._id, status })
             .populate('owner', 'name email avatar')
             .populate('members', 'name email avatar')
             .sort({ updatedAt: -1 });
@@ -104,10 +105,11 @@ router.put('/:id', auth, async (req, res) => {
             return res.status(403).json({ message: 'Only the project owner can update this project' });
         }
 
-        const { name, description, columns } = req.body;
+        const { name, description, columns, status } = req.body;
         if (name) project.name = name;
         if (description !== undefined) project.description = description;
         if (columns) project.columns = columns;
+        if (status) project.status = status;
 
         await project.save();
 
@@ -191,7 +193,7 @@ router.post('/:id/members', auth, async (req, res) => {
 });
 
 // @route   DELETE /api/projects/:id
-// @desc    Delete project (owner only)
+// @desc    Delete project (soft delete)
 router.delete('/:id', auth, async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
@@ -201,6 +203,53 @@ router.delete('/:id', auth, async (req, res) => {
 
         if (project.owner.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Only the project owner can delete this project' });
+        }
+
+        project.status = 'deleted';
+        await project.save();
+
+        // Clear cache
+        project.members.forEach(async (m) => {
+            await clearCachePrefix(`projects:${m.toString()}`);
+        });
+
+        res.json({ message: 'Project moved to trash', project });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   POST /api/projects/:id/restore
+// @desc    Restore project from trash (owner only)
+router.post('/:id/restore', auth, async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) return res.status(404).json({ message: 'Project not found' });
+        if (project.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Only the owner can restore this project' });
+        }
+
+        project.status = 'active';
+        await project.save();
+
+        project.members.forEach(async (m) => {
+            await clearCachePrefix(`projects:${m.toString()}`);
+        });
+
+        res.json({ message: 'Project restored', project });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   DELETE /api/projects/:id/permanent
+// @desc    Delete project PERMANENTLY (owner only)
+router.delete('/:id/permanent', auth, async (req, res) => {
+    try {
+        const project = await Project.findById(req.params.id);
+        if (!project) return res.status(404).json({ message: 'Project not found' });
+        if (project.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Only the owner can permanently delete this project' });
         }
 
         // Delete all tasks and comments associated with the project

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, Folders, CheckSquare, Settings, LogOut } from 'lucide-react';
+import { LayoutGrid, Folders, CheckSquare, Settings, LogOut, History } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import Logo from './ui/Logo';
@@ -12,6 +12,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { name: 'Dashboard', icon: LayoutGrid, path: '/' },
     { name: 'Boards', icon: Folders, path: '/boards' },
     { name: 'Tasks', icon: CheckSquare, path: '/tasks' },
+    { name: 'History', icon: History, path: '/archive' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
