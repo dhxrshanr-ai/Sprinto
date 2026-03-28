@@ -9,7 +9,16 @@ const connectRedis = async () => {
         return null;
     }
     
-    redisClient = createClient({ url: process.env.REDIS_URI });
+    // Only connect once in serverless
+    if (redisClient) return redisClient;
+    
+    redisClient = createClient({ 
+        url: process.env.REDIS_URI,
+        socket: {
+            connectTimeout: 5000,
+            reconnectStrategy: (retries) => (retries > 3 ? new Error('Max retries exceeded') : 1000)
+        }
+    });
     
     redisClient.on('error', (err) => logger.error('Redis Client Error', err));
     redisClient.on('connect', () => logger.info('Redis connected successfully'));
@@ -18,7 +27,9 @@ const connectRedis = async () => {
         await redisClient.connect();
         return redisClient;
     } catch (error) {
-        logger.error('Failed to connect to Redis', error);
+        // Log as warning rather than error if redis is optional
+        logger.warn('Redis is not available. Caching will be disabled.');
+        redisClient = null; 
         return null;
     }
 };

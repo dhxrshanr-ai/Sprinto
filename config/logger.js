@@ -12,36 +12,53 @@ const logFormat = format.combine(
     })
 );
 
-const logger = createLogger({
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-    format: logFormat,
-    transports: [
-        // Console output (colorized in dev)
-        new transports.Console({
-            format: format.combine(
-                format.colorize(),
-                logFormat
-            )
-        }),
-        // Error log file
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+
+// Define custom levels to ensure 'http' is present
+const customLevels = {
+    error: 0,
+    warn: 1,
+    info: 2,
+    http: 3,
+    debug: 4
+};
+
+const transportsList = [
+    new transports.Console({
+        format: format.combine(
+            format.colorize(),
+            logFormat
+        )
+    })
+];
+
+// Only add file transports if not in production/Vercel
+if (!isProduction) {
+    transportsList.push(
         new transports.File({
             filename: path.join('logs', 'error.log'),
             level: 'error',
-            maxsize: 5 * 1024 * 1024, // 5MB
+            maxsize: 5 * 1024 * 1024,
             maxFiles: 5,
         }),
-        // Combined log file
         new transports.File({
             filename: path.join('logs', 'combined.log'),
-            maxsize: 10 * 1024 * 1024, // 10MB
+            maxsize: 10 * 1024 * 1024,
             maxFiles: 5,
-        }),
-    ],
+        })
+    );
+}
+
+const logger = createLogger({
+    levels: customLevels,
+    level: isProduction ? 'info' : 'debug',
+    format: logFormat,
+    transports: transportsList,
     // Handle uncaught exceptions / unhandled rejections
-    exceptionHandlers: [
+    exceptionHandlers: isProduction ? [] : [
         new transports.File({ filename: path.join('logs', 'exceptions.log') })
     ],
-    rejectionHandlers: [
+    rejectionHandlers: isProduction ? [] : [
         new transports.File({ filename: path.join('logs', 'rejections.log') })
     ],
 });

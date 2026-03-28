@@ -18,15 +18,27 @@ const app    = express();
 const server = http.createServer(app);
 
 // ── Socket.IO ─────────────────────────────────────────────────────────────────
-const io = new Server(server, {
-    cors: {
-        origin: process.env.CLIENT_URL || '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        credentials: true,
-    }
-});
+let io;
+if (process.env.VERCEL) {
+    // Mock IO for serverless environment to prevent crashes
+    io = {
+        to: () => ({ emit: () => {} }),
+        emit: () => {},
+        on: () => {},
+    };
+    logger.info('Running in Vercel: Socket.IO initialized in mock mode');
+} else {
+    const io_server = new Server(server, {
+        cors: {
+            origin: process.env.CLIENT_URL || '*',
+            methods: ['GET', 'POST', 'PUT', 'DELETE'],
+            credentials: true,
+        }
+    });
+    io = io_server;
+    setupSocket(io);
+}
 app.set('io', io);
-setupSocket(io);
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 const allowedOrigins = (process.env.CLIENT_URL || '*').split(',');
@@ -84,9 +96,12 @@ app.use((err, _req, res, _next) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    logger.info(`Sprinto backend running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
-});
 
-module.exports = { app, server }; // export for testing
-// dev reload trigger
+// Export the app/server for Vercel
+module.exports = app;
+
+if (require.main === module || (process.env.NODE_ENV !== 'production' && !process.env.VERCEL)) {
+    server.listen(PORT, () => {
+        logger.info(`Sprinto backend running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+    });
+}
