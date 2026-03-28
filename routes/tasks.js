@@ -77,6 +77,22 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// @route   GET /api/tasks/me
+// @desc    Get all tasks assigned to the current user
+router.get('/me', auth, async (req, res) => {
+    try {
+        const tasks = await Task.find({ assignee: req.user._id })
+            .populate('assignee', 'name email avatar')
+            .populate('createdBy', 'name email avatar')
+            .populate('project', 'name')
+            .sort({ dueDate: 1, priority: -1 });
+
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @route   GET /api/tasks?project=:projectId
 // @desc    Get tasks for a project
 router.get('/', auth, cacheData('tasks', 300), async (req, res) => {

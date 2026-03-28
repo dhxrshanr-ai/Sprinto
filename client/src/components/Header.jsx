@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, Bell, Menu } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header({ onMenuClick }) {
   const [searchFocused, setSearchFocused] = useState(false);
@@ -35,6 +36,8 @@ export default function Header({ onMenuClick }) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
+        
         <button className="relative p-1.5 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-md hover:bg-[var(--bg-elevated)] transition-colors group">
           <Bell size={18} className="group-hover:scale-105 transition-transform" />
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[var(--accent)] rounded-full border-2 border-[var(--bg-surface)]"></span>

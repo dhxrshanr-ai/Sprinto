@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import AppLayout from './layouts/AppLayout';
 
 // Pages
@@ -8,6 +9,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Board from './pages/Board';
+import Boards from './pages/Boards';
+import Tasks from './pages/Tasks';
+import Settings from './pages/Settings';
 
 // Protected Route Wrapper
 const PrivateRoute = ({ children }) => {
@@ -32,10 +36,9 @@ function AppRoutes() {
       <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/board/:id" element={<Board />} />
-        {/* Placeholders for sidebar links */}
-        <Route path="/boards" element={<Navigate to="/" />} />
-        <Route path="/tasks" element={<Navigate to="/" />} />
-        <Route path="/settings" element={<Navigate to="/" />} />
+        <Route path="/boards" element={<Boards />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" />} />
@@ -45,22 +48,24 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-        <Toaster 
-          position="bottom-right" 
-          toastOptions={{
-            style: {
-              background: 'var(--bg-elevated)',
-              color: 'var(--text-main)',
-              border: '1px solid var(--border-strong)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-              fontSize: '14px'
-            }
-          }}
-        />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+          <Toaster 
+            position="bottom-right" 
+            toastOptions={{
+              style: {
+                background: 'var(--bg-elevated)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-strong)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                fontSize: '14px'
+              }
+            }}
+          />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

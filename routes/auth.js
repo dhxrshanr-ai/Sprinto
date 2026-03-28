@@ -64,6 +64,50 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// @route   POST /api/auth/social
+// @desc    Login or Register user via Social Auth
+router.post('/social', async (req, res) => {
+    try {
+        const { email, name, avatar, provider, providerId } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required for social login' });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Register new user
+            const userData = {
+                name: name || email.split('@')[0],
+                email,
+                avatar: avatar || '',
+                provider: provider || 'social'
+            };
+
+            if (provider === 'google') userData.googleId = providerId;
+
+            user = await User.create(userData);
+        } else {
+            // Update existing user with provider ID if missing
+            if (provider === 'google' && !user.googleId) {
+                user.googleId = providerId;
+                await user.save();
+            }
+        }
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            token: generateToken(user._id)
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @route   GET /api/auth/me
 // @desc    Get current user
 router.get('/me', auth, async (req, res) => {
