@@ -61,8 +61,17 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms', 
     stream: { write: (msg) => logger.http(msg.trim()) }
 }));
 
+// ── Static Files ──────────────────────────────────────────────────────────────
+const path = require('path');
+// Resolve public path correctly for both local and Vercel environments
+// When running in Vercel, the app is imported from api/index.js, so we need to go up etc.
+const publicPath = process.env.VERCEL 
+    ? path.join(process.cwd(), 'public') // Vercel sets cwd to the root of the project
+    : path.join(__dirname, 'public');    // Local uses current directory
+
+
 // Serve static files (public folder)
-app.use(express.static('public'));
+app.use(express.static(publicPath));
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',          require('./routes/auth'));
@@ -81,9 +90,39 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
-// ── 404 Handler ───────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-    res.status(404).json({ message: 'Route not found' });
+// Debug endpoint to check bundled files
+app.get('/api/debug-files', (req, res) => {
+    const fs = require('fs');
+    try {
+        const publicFiles = fs.existsSync(publicPath) ? fs.readdirSync(publicPath) : 'NOT FOUND';
+        const rootFiles = fs.readdirSync(__dirname);
+        res.json({ publicPath, publicFiles, rootFiles, cwd: process.cwd() });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── 404 & SPA Handler ────────────────────────────────────────────────────────
+// Any GET request that doesn't match a route or static file should serve the SPA
+app.get('*', (req, res, next) => {
+    if (req.url.startsWith('/api/')) {
+        return next(); // Fall through to 404 handler for unknown API routes
+    }
+    res.sendFile(path.join(publicPath, 'index.html'), (err) => {
+        if (err) {
+            logger.error(`Error serving index.html: ${err.message}`);
+            next();
+        }
+    });
+});
+
+app.use((req, res) => {
+    logger.warn(`404 - Not Found: ${req.method} ${req.url}`);
+    if (req.url.startsWith('/api/')) {
+        res.status(404).json({ message: `API route not found: ${req.url}` });
+    } else {
+        res.status(404).json({ message: 'Page not found' });
+    }
 });
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
